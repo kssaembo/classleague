@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 import { Settings, Team, Match } from '../types';
-import { Save, Users, Copy, Share2, Key, Plus, X, AlertTriangle, Check, Lock, Download, Bell } from 'lucide-react';
+import { Save, Users, Copy, Share2, Key, Plus, X, AlertTriangle, Check, Lock, Download, Bell, QrCode, ExternalLink } from 'lucide-react';
 
 interface AdminPanelProps {
   teacherId: string;
@@ -19,6 +19,8 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ teacherId, settings, teams, mat
   
   // Toast State
   const [toast, setToast] = useState<{ message: string; show: boolean }>({ message: '', show: false });
+  // QR Modal State
+  const [showQrModal, setShowQrModal] = useState(false);
 
   const [title, setTitle] = useState(settings?.title || '');
   const [description, setDescription] = useState(settings?.description || '');
@@ -29,7 +31,9 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ teacherId, settings, teams, mat
   const [teamListRaw, setTeamListRaw] = useState(teams.map(t => t.name).join(', '));
   const [confirmUpdate, setConfirmUpdate] = useState(false);
 
-  // 자동 토스트 닫기
+  // 고정 도메인 기반 학생 접속 링크
+  const studentLink = `https://classleague.vercel.app/?ref=${teacherId}`;
+
   useEffect(() => {
     if (toast.show) {
       const timer = setTimeout(() => {
@@ -107,7 +111,8 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ teacherId, settings, teams, mat
   };
 
   const downloadExcel = () => {
-    const stats = teams.map(team => {
+    // 순위 데이터 가공 및 정렬
+    const statsData = teams.map(team => {
       const teamMatches = matches.filter(m => m.team1_id === team.id || m.team2_id === team.id);
       let wins = 0, draws = 0, losses = 0, bonusTotal = 0;
       teamMatches.forEach(m => {
@@ -120,37 +125,52 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ teacherId, settings, teams, mat
         else losses++;
       });
       return {
-        '팀명': team.name,
-        '승점': (wins * 3) + (draws * 2) + (losses * 1) + bonusTotal,
-        '경기수': teamMatches.length,
-        '승': wins, '무': draws, '패': losses,
-        '보너스합계': bonusTotal
+        name: team.name,
+        points: (wins * 3) + (draws * 2) + (losses * 1) + bonusTotal,
+        totalGames: teamMatches.length,
+        wins, draws, losses,
+        bonusTotal
       };
-    }).sort((a, b) => b['승점'] - a['승점']);
+    }).sort((a, b) => b.points - a.points || b.wins - a.wins);
 
-    const matchHistory = matches.map(m => {
+    // 요청된 순서대로 순위표 데이터 생성
+    const statsExport = statsData.map((s, idx) => ({
+      '순위': idx + 1,
+      '팀명': s.name,
+      '승점': s.points,
+      '경기수': s.totalGames,
+      '승': s.wins,
+      '무': s.draws,
+      '패': s.losses,
+      '보너스 점수': s.bonusTotal
+    }));
+
+    // 요청된 순서대로 경기 세부 기록 생성 (보너스 삭제)
+    const matchHistoryExport = matches.map(m => {
       const t1 = teams.find(t => t.id === m.team1_id)?.name || '삭제됨';
       const t2 = teams.find(t => t.id === m.team2_id)?.name || '삭제됨';
       return {
         '날짜': m.match_date,
         '팀A': t1,
-        '점수A': m.score1,
-        '점수B': m.score2,
         '팀B': t2,
-        '보너스A': (m.bonus_details1 || []).join(', '),
-        '보너스B': (m.bonus_details2 || []).join(', '),
+        '점수 A': m.score1,
+        '점수 B': m.score2,
         '전략 및 메모': m.strategy_memo
       };
     });
 
     const wb = (window as any).XLSX.utils.book_new();
-    const ws1 = (window as any).XLSX.utils.json_to_sheet(stats);
-    const ws2 = (window as any).XLSX.utils.json_to_sheet(matchHistory);
+    const ws1 = (window as any).XLSX.utils.json_to_sheet(statsExport);
+    const ws2 = (window as any).XLSX.utils.json_to_sheet(matchHistoryExport);
     
     (window as any).XLSX.utils.book_append_sheet(wb, ws1, "리그 순위표");
     (window as any).XLSX.utils.book_append_sheet(wb, ws2, "경기 세부 기록");
     
-    (window as any).XLSX.writeFile(wb, `${settings?.title || '학급리그'}_기록_${new Date().toISOString().split('T')[0]}.xlsx`);
+    // 로컬 날짜 생성
+    const d = new Date();
+    const dateStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    
+    (window as any).XLSX.writeFile(wb, `${settings?.title || '학급리그'}_기록_${dateStr}.xlsx`);
   };
 
   const addBonusItem = () => {
@@ -203,28 +223,68 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ teacherId, settings, teams, mat
         </div>
       )}
 
+      {/* QR 코드 모달 */}
+      {showQrModal && (
+        <div className="fixed inset-0 z-[250] flex items-center justify-center p-6 bg-black/60 backdrop-blur-md animate-in fade-in duration-300">
+          <div className="bg-white rounded-[3rem] p-8 max-w-sm w-full text-center shadow-2xl border-4 border-blue-500 transform animate-in zoom-in slide-in-from-bottom-4">
+            <button onClick={() => setShowQrModal(false)} className="absolute top-6 right-6 p-2 text-slate-300 hover:text-slate-600">
+              <X size={24} />
+            </button>
+            <h3 className="text-xl font-bold text-slate-800 mb-2 flex items-center justify-center gap-2">
+              <QrCode className="text-blue-500" /> 우리 반 접속 QR
+            </h3>
+            <p className="text-xs text-slate-400 mb-6 font-medium">학생들이 카메라로 스캔하면 즉시 접속됩니다.</p>
+            
+            <div className="bg-slate-50 p-6 rounded-[2rem] mb-6 flex justify-center border-2 border-slate-100">
+              <img 
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(studentLink)}`} 
+                alt="Student Link QR Code"
+                className="w-48 h-48"
+              />
+            </div>
+            
+            <button onClick={() => setShowQrModal(false)} className="w-full py-4 bg-blue-500 text-white font-bold rounded-2xl shadow-lg hover:bg-blue-600">
+              닫기
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* 데이터 다운로드 섹션 */}
       <div className="bg-slate-800 rounded-3xl p-6 text-white shadow-lg flex items-center justify-between">
         <div>
           <h3 className="font-bold flex items-center gap-2 mb-1"><Download size={18} /> 현재 기록 다운로드</h3>
           <p className="text-xs text-slate-400">순위표와 세부 기록을 엑셀 파일로 저장합니다.</p>
         </div>
-        <button onClick={downloadExcel} className="bg-green-500 hover:bg-green-600 px-6 py-3 rounded-2xl transition-all font-bold flex items-center gap-2 shadow-lg">
-          엑셀 다운로드
+        <button onClick={downloadExcel} className="bg-green-500 hover:bg-green-600 px-4 md:px-6 py-3 rounded-2xl transition-all font-bold flex items-center gap-2 shadow-lg">
+          <Download size={18} /> <span className="hidden md:inline">다운로드</span>
         </button>
       </div>
 
-      <div className="bg-blue-600 rounded-3xl p-6 text-white shadow-lg flex items-center justify-between">
-        <div>
-          <h3 className="font-bold flex items-center gap-2 mb-1"><Share2 size={18} /> 학생용 개별 접속 링크</h3>
-          <p className="text-xs text-blue-100">이 링크를 복사해서 학생들에게 전달하세요.</p>
+      <div className="bg-blue-600 rounded-3xl p-6 text-white shadow-lg">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 className="font-bold flex items-center gap-2 mb-1"><Share2 size={18} /> 학생용 개별 접속 링크</h3>
+            <p className="text-xs text-blue-100">이 주소를 복사해서 전달하거나 QR코드를 보여주세요.</p>
+          </div>
+          <div className="flex gap-2">
+            <button onClick={() => {
+              navigator.clipboard.writeText(studentLink);
+              showSuccessToast("링크가 복사되었습니다! 🔗");
+            }} className="bg-white/20 hover:bg-white/30 p-3 rounded-2xl transition-all flex items-center gap-2 font-bold text-sm">
+              <Copy size={20} /> <span className="hidden md:inline">복사</span>
+            </button>
+            <button onClick={() => setShowQrModal(true)} className="bg-white text-blue-600 hover:bg-blue-50 p-3 rounded-2xl transition-all flex items-center gap-2 font-bold text-sm">
+              <QrCode size={20} /> <span className="hidden md:inline">QR코드</span>
+            </button>
+          </div>
         </div>
-        <button onClick={() => {
-          navigator.clipboard.writeText(`${window.location.origin}${window.location.pathname}?ref=${teacherId}`);
-          showSuccessToast("링크가 복사되었습니다! 🔗");
-        }} className="bg-white/20 hover:bg-white/30 p-3 rounded-2xl transition-all">
-          <Copy size={20} />
-        </button>
+        <div className="bg-blue-700/50 p-4 rounded-2xl border border-blue-400/30 flex items-center justify-between gap-4">
+          <code className="text-[11px] md:text-xs font-mono break-all opacity-90 select-all">{studentLink}</code>
+          <a href={studentLink} target="_blank" rel="noreferrer" className="shrink-0 text-blue-200 hover:text-white transition-colors">
+            <ExternalLink size={16} />
+          </a>
+        </div>
       </div>
 
       <section className="bg-white rounded-3xl p-6 shadow-md border-2 border-slate-50">

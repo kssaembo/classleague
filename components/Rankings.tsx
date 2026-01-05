@@ -100,7 +100,7 @@ const Rankings: React.FC<RankingsProps> = ({ teams, matches }) => {
               <th className="p-3 md:p-4">경기</th>
               <th className="p-3 md:p-4">승/무/패</th>
               <th className="p-3 md:p-4">보너스</th>
-              <th className="p-3 md:p-4 whitespace-nowrap">최근 경기</th>
+              <th className="p-3 md:p-4 whitespace-nowrap hidden md:table-cell">최근 경기</th>
             </tr>
           </thead>
           <tbody>
@@ -130,7 +130,7 @@ const Rankings: React.FC<RankingsProps> = ({ teams, matches }) => {
                   <td className="p-3 md:p-5">
                     <span className="bg-orange-100 text-orange-600 px-2 py-1 rounded-lg text-[10px] font-black">+{s.bonusTotal}</span>
                   </td>
-                  <td className="p-3 md:p-5">
+                  <td className="p-3 md:p-5 hidden md:table-cell">
                     <div className="flex justify-center gap-1 relative">
                       {s.history.slice(0, 3).reverse().map((r, i) => (
                         <div 
@@ -145,7 +145,7 @@ const Rankings: React.FC<RankingsProps> = ({ teams, matches }) => {
                         >
                           <span 
                             className={`w-5 h-5 md:w-6 md:h-6 rounded-lg text-[9px] md:text-[10px] flex items-center justify-center font-black text-white shadow-sm transition-transform active:scale-90 cursor-pointer
-                              ${r.result === 'W' ? 'bg-green-500' : r.result === 'D' ? 'bg-slate-300' : 'r.result === L' ? 'bg-red-400' : 'bg-red-400'}`}
+                              ${r.result === 'W' ? 'bg-green-500' : r.result === 'D' ? 'bg-slate-300' : r.result === 'L' ? 'bg-red-400' : 'bg-red-400'}`}
                           >
                             {r.result}
                           </span>

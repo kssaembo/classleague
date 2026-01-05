@@ -139,10 +139,10 @@ const App: React.FC = () => {
       <NoticePopup notice={settings?.notice || ''} />
 
       <header className="bg-white p-12 text-center border-b-2 border-green-100 relative">
-        <h1 className="text-6xl font-black text-green-700 mb-4">
+        <h1 className="text-3xl md:text-6xl font-black text-green-700 mb-4">
           {settings?.title || "우리 반 스포츠 리그"}
         </h1>
-        <p className="text-2xl text-slate-500 font-bold">{settings?.description || "정정당당 즐거운 경기!"}</p>
+        <p className="text-xl md:text-2xl text-slate-500 font-bold">{settings?.description || "정정당당 즐거운 경기!"}</p>
         
         {!isStudentMode && session && (
           <button onClick={handleLogout} className="absolute top-6 right-6 p-2 text-slate-300 hover:text-red-500">

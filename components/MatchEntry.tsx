@@ -14,7 +14,16 @@ interface MatchEntryProps {
 }
 
 const MatchEntry: React.FC<MatchEntryProps> = ({ teacherId, teams, onComplete, settings, editingMatch, onCancel }) => {
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  // 로컬 날짜 YYYY-MM-DD 구하는 헬퍼 함수
+  const getLocalDateString = () => {
+    const d = new Date();
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const [date, setDate] = useState(getLocalDateString());
   const [team1, setTeam1] = useState('');
   const [team2, setTeam2] = useState('');
   const [score1, setScore1] = useState<number | string>(0);
@@ -35,8 +44,8 @@ const MatchEntry: React.FC<MatchEntryProps> = ({ teacherId, teams, onComplete, s
       setBonusDetails1(editingMatch.bonus_details1 || []);
       setBonusDetails2(editingMatch.bonus_details2 || []);
     } else {
-      // 초기화
-      setDate(new Date().toISOString().split('T')[0]);
+      // 초기화 시 로컬 오늘 날짜 적용
+      setDate(getLocalDateString());
       setTeam1('');
       setTeam2('');
       setScore1(0);
