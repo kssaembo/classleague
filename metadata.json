@@ -1,0 +1,5 @@
+{
+  "name": "Class League Manager",
+  "description": "A fun and easy-to-use sports league management system for elementary school teachers and students, featuring match recording, rankings with points, and admin controls.",
+  "requestFramePermissions": []
+}
