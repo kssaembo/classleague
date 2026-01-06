@@ -214,6 +214,16 @@ const Login: React.FC = () => {
               </div>
             </div>
 
+            {!isLogin && (
+              <div className="bg-blue-50 p-4 rounded-2xl flex gap-3 text-blue-600 border border-blue-100 animate-in fade-in slide-in-from-top-2">
+                <AlertCircle size={20} className="shrink-0 mt-0.5" />
+                <p className="text-[11px] font-medium leading-relaxed">
+                  이메일로 가입하시면 비밀번호 분실 시 해당 이메일로 복구코드가 발급됩니다. 
+                  아이디로 가입하시면 비밀번호 분실 시 관리자 이메일로 비밀번호 초기화를 요청해주세요.
+                </p>
+              </div>
+            )}
+
             <button 
               type="submit" 
               disabled={loading}

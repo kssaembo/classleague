@@ -1,4 +1,6 @@
 
+export type LeagueType = 'points' | 'time' | 'time_high' | 'count' | 'mission';
+
 export interface Team {
   id: string;
   teacher_id: string;
@@ -16,9 +18,9 @@ export interface Match {
   score1: number;
   score2: number;
   strategy_memo: string;
-  bonus1: boolean; // 하위 호환성 유지
-  bonus2: boolean; // 하위 호환성 유지
-  bonus_details1?: string[]; // 획득한 보너스 항목 리스트
+  bonus1: boolean;
+  bonus2: boolean;
+  bonus_details1?: string[];
   bonus_details2?: string[];
   created_at: string;
 }
@@ -31,7 +33,9 @@ export interface Settings {
   notice: string;
   bonus_label: string;
   access_code: string;
-  bonus_config?: string[]; // 보너스 항목 리스트 ['매너', '준비물', ...]
+  bonus_config?: string[];
+  league_type?: LeagueType;
+  league_unit?: string;
 }
 
 export interface TeamStats {
