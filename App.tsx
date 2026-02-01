@@ -24,7 +24,7 @@ const App: React.FC = () => {
   const [matches, setMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingMatch, setEditingMatch] = useState<Match | null>(null);
-  const [policyType, setPolicyType] = useState<'terms' | 'privacy' | null>(null);
+  const [policyType, setPolicyType] = useState<'terms' | 'privacy' | 'guide' | null>(null);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -218,9 +218,15 @@ const App: React.FC = () => {
       </main>
 
       <footer className="bg-white py-12 px-6 border-t border-slate-100 text-center space-y-6">
-        <div className="flex justify-center gap-6 text-slate-400 text-xs font-bold">
+        <div className="flex flex-wrap justify-center gap-4 md:gap-8 text-slate-400 text-xs font-bold items-center">
           <button onClick={() => setPolicyType('terms')} className="hover:text-indigo-500 transition-colors">이용약관</button>
           <button onClick={() => setPolicyType('privacy')} className="hover:text-indigo-500 transition-colors">개인정보처리방침</button>
+          <button 
+            onClick={() => setPolicyType('guide')} 
+            className="bg-indigo-600 text-white px-4 py-2 rounded-full hover:bg-indigo-700 transition-all shadow-md active:scale-95"
+          >
+            클래스리그 사용 가이드라인
+          </button>
         </div>
         <div className="flex flex-col items-center gap-1 text-slate-400 text-[10px] md:text-xs">
           <p className="flex items-center gap-1"><Mail size={12} /> 제안이나 문의사항이 있으시면 언제든 메일 주세요.</p>

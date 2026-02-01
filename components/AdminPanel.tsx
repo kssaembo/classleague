@@ -404,7 +404,8 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ teacherId, settings, teams, mat
           <textarea 
             value={teamListRaw} 
             onChange={e => setTeamListRaw(e.target.value)}
-            className="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none focus:border-blue-400 h-32 text-sm"
+            placeholder="팀 이름을 쉼표(,)로 구분하여 입력해 주세요. (예: 1모둠, 2모둠, 3모둠, 4모둠)"
+            className="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none focus:border-blue-400 h-32 text-sm placeholder:text-slate-300"
           />
           {!confirmUpdate ? (
             <button onClick={() => setConfirmUpdate(true)} className="w-full py-4 bg-blue-500 text-white font-bold rounded-2xl shadow-md hover:bg-blue-600">
