@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 import { Settings, Team, Match, LeagueType } from '../types';
-import { Save, Users, Copy, Share2, Key, Plus, X, AlertTriangle, Check, Lock, Download, Bell, QrCode, ExternalLink, Timer, Target, CheckCircle, Clock } from 'lucide-react';
+import { Save, Users, Copy, Share2, Key, Plus, X, AlertTriangle, Check, Lock, Download, Bell, QrCode, ExternalLink, Timer, Target, CheckCircle, Clock, Eye } from 'lucide-react';
 
 interface AdminPanelProps {
   teacherId: string;
@@ -33,7 +33,10 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ teacherId, settings, teams, mat
   const [confirmUpdate, setConfirmUpdate] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  const studentLink = `${window.location.origin}/?ref=${teacherId}`;
+  // 공식 URL을 기반으로 링크 생성
+  const baseUrl = "https://classleague.vercel.app/";
+  const studentLink = `${baseUrl}?ref=${teacherId}`;
+  const readonlyLink = `${baseUrl}?ref=${teacherId}&readonly=true`;
 
   useEffect(() => {
     if (toast.show) {
@@ -46,6 +49,12 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ teacherId, settings, teams, mat
 
   const showSuccessToast = (msg: string) => {
     setToast({ message: msg, show: true });
+  };
+
+  const copyToClipboard = (text: string, msg: string) => {
+    navigator.clipboard.writeText(text).then(() => {
+      showSuccessToast(msg);
+    });
   };
 
   const handleAdminUnlock = (e: React.FormEvent) => {
@@ -75,10 +84,8 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ teacherId, settings, teams, mat
     }
   };
 
-  // 대결 방식 저장 프로세스 (모달 확인 후 실행됨)
   const executeTemplateSave = async () => {
     setIsSaving(true);
-    // 1. 기존 경기 기록 모두 삭제
     const { error: deleteError } = await supabase.from('matches').delete().eq('teacher_id', teacherId);
     
     if (deleteError) {
@@ -87,7 +94,6 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ teacherId, settings, teams, mat
       return;
     }
 
-    // 2. 새로운 설정 저장
     const { error: saveError } = await supabase.from('settings').upsert({
       id: settings?.id,
       teacher_id: teacherId,
@@ -249,14 +255,25 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ teacherId, settings, teams, mat
         </div>
       )}
 
-      <div className="bg-slate-800 rounded-3xl p-6 text-white shadow-lg flex items-center justify-between">
-        <div>
-          <h3 className="font-bold flex items-center gap-2 mb-1"><Download size={18} /> 현재 기록 다운로드</h3>
-          <p className="text-xs text-slate-400">기록을 엑셀 파일로 저장합니다.</p>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="bg-slate-800 rounded-3xl p-6 text-white shadow-lg flex items-center justify-between">
+          <div>
+            <h3 className="font-bold flex items-center gap-2 mb-1"><Download size={18} /> 기록 엑셀 다운로드</h3>
+            <p className="text-xs text-slate-400">전체 기록을 파일로 소장하세요.</p>
+          </div>
+          <button onClick={downloadExcel} className="bg-green-500 hover:bg-green-600 px-4 py-3 rounded-2xl transition-all font-bold flex items-center gap-2 shadow-lg">
+            <Download size={18} /> <span className="hidden md:inline">다운로드</span>
+          </button>
         </div>
-        <button onClick={downloadExcel} className="bg-green-500 hover:bg-green-600 px-4 md:px-6 py-3 rounded-2xl transition-all font-bold flex items-center gap-2 shadow-lg">
-          <Download size={18} /> <span className="hidden md:inline">다운로드</span>
-        </button>
+        <div className="bg-indigo-600 rounded-3xl p-6 text-white shadow-lg flex items-center justify-between">
+          <div>
+            <h3 className="font-bold flex items-center gap-2 mb-1"><Eye size={18} /> 조회 전용 링크 생성</h3>
+            <p className="text-xs text-indigo-200">기록 수정이 불가능한 링크입니다.</p>
+          </div>
+          <button onClick={() => copyToClipboard(readonlyLink, "조회 전용 링크가 복사되었습니다! 🔗")} className="bg-white text-indigo-600 hover:bg-indigo-50 px-4 py-3 rounded-2xl transition-all font-bold flex items-center gap-2 shadow-lg">
+            <Copy size={18} /> <span className="hidden md:inline">링크 복사</span>
+          </button>
+        </div>
       </div>
 
       <section className="bg-white rounded-3xl p-6 shadow-md border-2 border-indigo-50">
