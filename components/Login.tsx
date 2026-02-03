@@ -72,7 +72,6 @@ const Login: React.FC = () => {
             teacher_id: data.user.id,
             title: '우리 반 스포츠 리그',
             description: '정정당당 즐거운 경기!',
-            notice: '가입을 환영합니다! 설정에서 정보를 수정해보세요.',
             access_code: '1234',
             bonus_config: ['매너 점수', '페어플레이']
           });

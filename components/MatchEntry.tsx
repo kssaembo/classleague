@@ -132,7 +132,7 @@ const MatchEntry: React.FC<MatchEntryProps> = ({ teacherId, teams, onComplete, s
     return (
       <div className="flex flex-col items-center">
         <span className="text-slate-500 font-bold text-sm mb-2">{isRecordType ? '기록 입력' : '획득 점수'}</span>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-10">
           {!isRecordType && (
             <button type="button" onClick={() => setScore(Math.max(0, Number(score) - 1))} className="w-10 h-10 md:w-12 md:h-12 bg-white rounded-xl shadow-sm border-2 border-slate-100 text-xl font-black text-slate-600 active:scale-90">-</button>
           )}

@@ -7,7 +7,6 @@ import AdminPanel from './components/AdminPanel';
 import MatchEntry from './components/MatchEntry';
 import Rankings from './components/Rankings';
 import MatchHistory from './components/MatchHistory';
-import NoticePopup from './components/NoticePopup';
 import PolicyModal from './components/PolicyModal';
 import { Trophy, History, PlusCircle, Settings as SettingsIcon, LogOut, Lock, Mail, Eye } from 'lucide-react';
 
@@ -157,7 +156,6 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-indigo-50 text-slate-800 flex flex-col">
-      <NoticePopup notice={settings?.notice || ''} />
       <PolicyModal type={policyType} onClose={() => setPolicyType(null)} />
 
       {isReadOnlyMode && (
@@ -225,7 +223,7 @@ const App: React.FC = () => {
             onClick={() => setPolicyType('guide')} 
             className="bg-indigo-600 text-white px-4 py-2 rounded-full hover:bg-indigo-700 transition-all shadow-md active:scale-95"
           >
-            클래스리그 사용 가이드라인
+            가이드라인 & 사용설명서
           </button>
         </div>
         <div className="flex flex-col items-center gap-1 text-slate-400 text-[10px] md:text-xs">

@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { X, Shield, FileText, BookOpen } from 'lucide-react';
 
 interface PolicyModalProps {
@@ -8,6 +8,8 @@ interface PolicyModalProps {
 }
 
 const PolicyModal: React.FC<PolicyModalProps> = ({ type, onClose }) => {
+  const [activeSubTab, setActiveSubTab] = useState<'guide' | 'manual'>('guide');
+
   if (!type) return null;
 
   const policies = {
@@ -70,9 +72,10 @@ const PolicyModal: React.FC<PolicyModalProps> = ({ type, onClose }) => {
       `
     },
     guide: {
-      title: '클래스리그 사용 가이드라인',
+      title: '가이드라인 & 사용설명서',
       icon: <BookOpen className="text-blue-500" />,
-      content: `
+      content: {
+        guide: `
 [안전하고 즐거운 클래스리그 사용 가이드]
 
 선생님! 우리 반 아이들과 즐거운 리그를 운영하기 위해 아래 4가지 보안 수칙을 꼭 확인해 주세요. 😊
@@ -92,7 +95,36 @@ const PolicyModal: React.FC<PolicyModalProps> = ({ type, onClose }) => {
 - 1년 동안의 즐거운 기록이 끝났다면, 2월 종업식 전 엑셀로 기록을 백업한 뒤 '관리자 > 데이터 초기화'를 통해 깨끗하게 지워주세요. 이것이 가장 확실한 개인정보 보호입니다.
 
 정정당당하고 안전한 학급 스포츠 리그, 선생님의 작은 실천으로 만들어집니다! 🏅
-      `
+        `,
+        manual: `
+[클래스리그 매니저 상세 사용설명서]
+
+1단계: 선생님 전용 계정 만들기
+- 첫 화면에서 '선생님 가입하기'를 눌러 아이디(이메일 형식)와 비밀번호를 설정합니다.
+- 가입 즉시 선생님만의 고유한 리그 공간이 생성됩니다.
+
+2단계: 우리 반 맞춤형 리그 설정 (관리자 메뉴)
+- 대결 방식 선택: 우리 반 종목에 맞춰 5가지 템플릿 중 하나를 고르세요.
+    * 점수제: 승(3점), 무(2점), 패(1점) 승점 합산 방식 (피구, 축구 등)
+    * 기록제(시간/횟수): 달리기, 줄넘기, 오래 버티기 등 (단위 설정 가능)
+    * 미션 완료형: 성공/실패만 체크하는 방식
+- 교사 비밀번호 변경: 초기 비번인 '1234'를 반드시 우리 반 아이들만 아는 숫자로 변경하세요.
+- 팀 등록: 참여할 팀(또는 모둠)의 이름을 쉼표(,)로 구분해서 한 번에 입력하세요.
+
+3단계: 학생들과 공유하기
+- 조회 전용 링크: 학생들에게는 '조회 전용 링크'를 복사해서 알림장이나 패들릿에 올려주세요. 학생들은 기록을 볼 수만 있고 수정은 할 수 없습니다.
+- QR 코드 활용: 교실 TV에 QR 코드를 띄워주면 학생들이 태블릿으로 간편하게 접속할 수 있습니다.
+
+4단계: 경기 결과 입력하기 (기록 추가)
+- 경기가 끝나면 학생 기록원이나 선생님이 결과를 입력합니다.
+- 보너스 점수: 승패와 별개로 '페어플레이', '응원 매너' 등 선생님이 설정한 보너스 점수를 부여하여 인성 교육을 병행할 수 있습니다.
+- 메모 기능: "역전승!", "모두가 한마음으로 응원함" 등 짧은 코멘트를 남겨보세요.
+
+5단계: 실시간 순위 확인 및 기록 보존
+- 순위표: 입력과 동시에 실시간으로 순위가 바뀝니다. 점수뿐만 아니라 보너스 점수까지 합산되어 공정한 경쟁이 가능합니다.
+- 기록 백업: 리그가 끝나면 관리자 메뉴에서 '엑셀 다운로드'를 누르세요. 학기 말 생활기록부 작성 시 훌륭한 참고 자료가 됩니다.
+        `
+      }
     }
   };
 
@@ -111,9 +143,28 @@ const PolicyModal: React.FC<PolicyModalProps> = ({ type, onClose }) => {
           </button>
         </div>
         
-        <div className="p-8 overflow-y-auto bg-white">
+        {type === 'guide' && (
+          <div className="flex border-b bg-slate-50">
+            <button 
+              onClick={() => setActiveSubTab('guide')}
+              className={`flex-1 py-4 font-bold text-sm transition-all ${activeSubTab === 'guide' ? 'bg-white text-indigo-600 border-b-4 border-indigo-600' : 'text-slate-400'}`}
+            >
+              사용 가이드라인
+            </button>
+            <button 
+              onClick={() => setActiveSubTab('manual')}
+              className={`flex-1 py-4 font-bold text-sm transition-all ${activeSubTab === 'manual' ? 'bg-white text-indigo-600 border-b-4 border-indigo-600' : 'text-slate-400'}`}
+            >
+              사용 설명서
+            </button>
+          </div>
+        )}
+
+        <div className="p-8 overflow-y-auto bg-white flex-grow">
           <pre className="text-slate-600 font-medium whitespace-pre-wrap leading-relaxed text-sm font-sans">
-            {activePolicy.content.trim()}
+            {type === 'guide' 
+              ? (activeSubTab === 'guide' ? (activePolicy.content as any).guide.trim() : (activePolicy.content as any).manual.trim())
+              : (activePolicy.content as string).trim()}
           </pre>
         </div>
 

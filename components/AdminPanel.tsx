@@ -23,7 +23,6 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ teacherId, settings, teams, mat
 
   const [title, setTitle] = useState(settings?.title || '');
   const [description, setDescription] = useState(settings?.description || '');
-  const [notice, setNotice] = useState(settings?.notice || '');
   const [accessCode, setAccessCode] = useState(settings?.access_code || '1234');
   const [bonusConfig, setBonusConfig] = useState<string[]>(settings?.bonus_config || ['보너스 점수']);
   const [leagueType, setLeagueType] = useState<LeagueType>(settings?.league_type || 'points');
@@ -72,7 +71,6 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ teacherId, settings, teams, mat
       teacher_id: teacherId,
       title,
       description,
-      notice,
       access_code: accessCode,
     });
     
@@ -147,9 +145,45 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ teacherId, settings, teams, mat
   };
 
   const downloadExcel = () => {
+    const XLSX = (window as any).XLSX;
+    if (!XLSX) {
+      alert("엑셀 라이브러리를 불러오지 못했습니다.");
+      return;
+    }
+
+    const wb = XLSX.utils.book_new();
+    
+    // 1. 경기 기록 데이터 구성
+    const matchData = matches.map(m => ({
+      '경기 날짜': m.match_date,
+      '팀A 이름': teams.find(t => t.id === m.team1_id)?.name || '삭제된 팀',
+      '팀A 기록/점수': m.score1,
+      '팀B 이름': teams.find(t => t.id === m.team2_id)?.name || '삭제된 팀',
+      '팀B 기록/점수': m.score2,
+      '팀A 보너스 항목': (m.bonus_details1 || []).join(', '),
+      '팀B 보너스 항목': (m.bonus_details2 || []).join(', '),
+      '경기 메모': m.strategy_memo || ''
+    }));
+
+    // 2. 워크시트 생성 (데이터가 없을 경우 방지)
+    const wsMatches = matchData.length > 0 
+      ? XLSX.utils.json_to_sheet(matchData)
+      : XLSX.utils.json_to_sheet([{ '알림': '기록된 경기 데이터가 없습니다.' }]);
+    
+    // 3. 팀 목록 데이터 구성
+    const teamData = teams.map(t => ({ '팀명': t.name }));
+    const wsTeams = teamData.length > 0
+      ? XLSX.utils.json_to_sheet(teamData)
+      : XLSX.utils.json_to_sheet([{ '알림': '등록된 팀이 없습니다.' }]);
+
+    // 4. 북에 시트 추가
+    XLSX.utils.book_append_sheet(wb, wsMatches, "전체 경기기록");
+    XLSX.utils.book_append_sheet(wb, wsTeams, "팀 명단");
+
+    // 5. 파일 쓰기
     const d = new Date();
     const dateStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-    (window as any).XLSX.writeFile((window as any).XLSX.utils.book_new(), `${settings?.title || '학급리그'}_기록_${dateStr}.xlsx`);
+    XLSX.writeFile(wb, `${settings?.title || '학급리그'}_기록_${dateStr}.xlsx`);
   };
 
   const addBonusItem = () => {
